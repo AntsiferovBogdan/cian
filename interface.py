@@ -16,7 +16,7 @@ select = OptionMenu(root, select_var, "Москва и МО", "Белгород"
                     "Курск", "Липецк", "Орел", "Рязань", "Смоленск", "Тамбов",
                     "Тверь", "Тула", "Ярославль")
 
-city_dict = {"Москва и МО": "-1", "Белгород": "4671", "Брянск": "4691",
+city_dict = {"Москва и МО": "-1", "Белгород": "4671", "Брянск": "4691",  # коды городов на ЦИАН
              "Владимир": "4703", "Воронеж": "4713", "Иваново": "4767",
              "Калуга": "4780", "Кострома": "175050", "Курск": "4835",
              "Липецк": "4847", "Орел": "175604", "Рязань": "4963",
@@ -100,7 +100,7 @@ def parser(url, page_counter=1):
         offers_list = soup.find_all("div", {"data-name": "HorizontalCard"})
         if len(offers_list) == 0:
             return print("капча")
-        for offer in offers_list:
+        for offer in offers_list:  # парсим каждую карточку со страницы
             url = offer.find("a")["href"]
             html = get_html(url)
             if html:
@@ -109,7 +109,7 @@ def parser(url, page_counter=1):
                 address = soup2.find(
                     "div", {"data-name": "Geo"}
                     ).find("address")
-                print(url)
+                full_dict["Адрес"] = address.text[:-8]
                 full_dict["Ссылка"] = url
                 ids = soup2.find("div", {"data-name": "AuthorAsideBrand"})
                 if "ID" in ids.text:
@@ -122,7 +122,6 @@ def parser(url, page_counter=1):
                     else:
                         full_dict["ID"] = "Нельзя извлечь со страницы"
                 print(full_dict["ID"])
-                full_dict["Адрес"] = address.text[:-8]
                 full_dict["Телефон"] = soup2.find(
                     "div", {"data-name": "OfferContactsAside"}
                     ).find("a").text
@@ -135,8 +134,8 @@ def parser(url, page_counter=1):
                 else:
                     price = "0"
                     full_dict["Цена"] = "Ценовой диапазон"
-                full_dict["МАП"] = str(price//100000) + " мес."
-                full_dict["ГАП"] = str(price//1200000*12) + " мес."
+                full_dict["МАП"] = str(price//100000) + " мес."      # расчет параметров
+                full_dict["ГАП"] = str(price//1200000*12) + " мес."  # для заказчика
                 if "от" in full_dict["Площадь"]:
                     full_dict["Цена за кв. м"] = "Диапазон площадей"
                 else:
@@ -146,7 +145,7 @@ def parser(url, page_counter=1):
                 dict_list.append(full_dict)
                 print(len(dict_list))
         pagination = soup.find("div", {"data-name": "Pagination"})
-        if pagination is not None:
+        if pagination is not None:  # проверяем наличие других страниц
             pagination = pagination.find_all("li")
             for page in pagination:
                 if page.find("span") is not None:
@@ -164,7 +163,7 @@ def parser(url, page_counter=1):
                         print("пошел на новую страницу")
                         print(url)
                         return parser(url, page_counter)
-    return dict_write()
+    return dict_write(). # отправляем все на запись в csv
 
 
 def dict_write():
@@ -180,7 +179,7 @@ def dict_write():
     return
 
 
-def search_url():
+def search_url():  # собираем конструктор url из tkinter
     city = select_var.get()
 
     property_type = "2"
