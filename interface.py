@@ -23,11 +23,6 @@ city_dict = {"Москва и МО": "-1", "Белгород": "4671", "Брян
              "Смоленск": "4987", "Тамбов": "5011", "Тверь": "176083",
              "Тула": "5020", "Ярославль": "5075"}
 
-check_box_0 = BooleanVar()
-check_box_0.set(0)
-c0 = Checkbutton(text="+ область", variable=check_box_0,
-                 onvalue=1, offvalue=0, height=2)
-
 radio_var_1 = BooleanVar()
 radio_var_1.set(0)
 r1 = Radiobutton(text="Торговое", variable=radio_var_1, value=0)
@@ -111,32 +106,43 @@ def parser(url, page_counter=1):
             if html:
                 soup2 = BeautifulSoup(html, "html.parser")
                 full_dict = {}
-                address = soup2.find("div", {"data-name": "Geo"}).find("address")
+                address = soup2.find(
+                    "div", {"data-name": "Geo"}
+                    ).find("address")
                 print(url)
                 full_dict["Ссылка"] = url
-                ids = soup2.find("div", {"data-name": "AuthorAsideBrand"}).find("h2").text
-                if "ID" in ids:
+                ids = soup2.find("div", {"data-name": "AuthorAsideBrand"})
+                if "ID" in ids.text:
+                    ids = ids.find("h2").text
                     full_dict["ID"] = ids[3:]
                 else:
-                    ids = soup2.find("div", {"data-name": "AuthorAsideBrand"})
-                    ids = ids.find("a", {"data-name": "Link"})["href"]
-                    full_dict["ID"] = ids[len(ids)-9, len(ids)-1]
+                    if ids.find("a", {"data-name": "Link"}) is not None:
+                        ids = ids.find("a", {"data-name": "Link"})
+                        full_dict["ID"] = ids["href"]
+                    else:
+                        full_dict["ID"] = "Нельзя извлечь со страницы"
                 print(full_dict["ID"])
                 full_dict["Адрес"] = address.text[:-8]
-                full_dict["Телефон"] = soup2.find("div", {"data-name": "OfferContactsAside"}).find("a").text
+                full_dict["Телефон"] = soup2.find(
+                    "div", {"data-name": "OfferContactsAside"}
+                    ).find("a").text
                 square = soup2.find("h1").text.split(",")[1]
                 full_dict["Площадь"] = square.strip()
                 price = soup2.find("span", {"itemprop": "price"})
                 if price is not None:
-                    price = price["content"]
-                    full_dict["Цена"] = price + " руб."
+                    price = int(price["content"])
+                    full_dict["Цена"] = str(price) + " руб."
                 else:
                     price = "0"
                     full_dict["Цена"] = "Ценовой диапазон"
-                full_dict["МАП"] = str(int(price)//100000) + " мес."
-                full_dict["ГАП"] = str(int(price)//1200000*12) + " мес."
-                full_dict["Цена за кв. м"] = int(price)//int(square.split(" ")[1])
-                full_dict["Описание"] = soup2.find("p", {"itemprop": "description"}).text
+                full_dict["МАП"] = str(price//100000) + " мес."
+                full_dict["ГАП"] = str(price//1200000*12) + " мес."
+                if "от" in full_dict["Площадь"]:
+                    full_dict["Цена за кв. м"] = "Диапазон площадей"
+                else:
+                    full_dict["Цена за м2"] = price//int(square.split(" ")[1])
+                description = soup2.find("p", {"itemprop": "description"})
+                full_dict["Описание"] = description.text
                 dict_list.append(full_dict)
                 print(len(dict_list))
         pagination = soup.find("div", {"data-name": "Pagination"})
@@ -190,8 +196,6 @@ def search_url():
         min_floor = "1"
 
     city = city_dict[select_var.get()]
-
-    page = "1"
 
     key_list_1 = []
     if property_type == "2":
@@ -251,7 +255,7 @@ def search_url():
         elif len(key_list_2) == 1:
             key_words = key_list_2[0]
         elif len(key_list_2) == 0:
-            url = "https://www.cian.ru/cat.php?currency=2&deal_type=sale&engine_version=2&m2=1&maxprice=" + max_price + "&minfloor=" + min_floor + "&offer_type=offices&office_type%5B0%5D=" + property_type + "&p=" + page + "&region=" + city    
+            url = "https://www.cian.ru/cat.php?currency=2&deal_type=sale&engine_version=2&m2=1&maxprice=" + max_price + "&minfloor=" + min_floor + "&offer_type=offices&office_type%5B0%5D=" + property_type + "&p=1&region=" + city
             return parser(url)
     else:
         if len(key_list_2) == 0:
@@ -262,7 +266,12 @@ def search_url():
                 for key_1 in key_list_1:
                     key_words.append(key_1 + "+" + key_2)
             key_words = (",").join(key_words).replace(",", "%7C")
-    url = "https://www.cian.ru/cat.php?context=" + key_words + "&currency=2&deal_type=sale&engine_version=2&m2=1&maxprice=" + max_price + "&minfloor=" + min_floor + "&offer_type=offices&office_type%5B0%5D=" + property_type + "&p=" + page + "&region=" + city
+    url = "https://www.cian.ru/cat.php?context="\
+        + key_words + \
+        "&currency=2&deal_type=sale&engine_version=2&m2=1&maxprice="\
+        + max_price + "&minfloor=" + min_floor\
+        + "&offer_type=offices&office_type%5B0%5D="\
+        + property_type + "&p=1&region=" + city
     return parser(url)
 
 
@@ -279,7 +288,6 @@ r2.grid(row=1, column=1, sticky=W)
 r2_1.grid(row=2, column=0, sticky=W)
 r2_2.grid(row=2, column=1, sticky=W)
 
-c0.grid(row=0, column=1, sticky=W)
 c1.grid(row=5, column=0, sticky=W)
 c2.grid(row=6, column=0, sticky=W)
 c3.grid(row=7, column=0, sticky=W)
