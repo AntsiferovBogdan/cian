@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
 from fake_headers import Headers
 from tkinter import BooleanVar, Button, Checkbutton, Entry, Label, \
@@ -97,6 +99,7 @@ def get_html(url):
 
 
 def parser(url, page_counter=1, dict_list=[]):
+    captcha["fg"] = "white"
     html = get_html(url)
     if html:
         soup = BeautifulSoup(html, "html.parser")
@@ -111,13 +114,12 @@ def parser(url, page_counter=1, dict_list=[]):
             if html:
                 soup2 = BeautifulSoup(html, "html.parser")
                 full_dict = {}
+                full_dict["Ссылка"] = url
 
                 address = soup2.find(
                     "div", {"data-name": "Geo"}
                     ).find("address")
                 full_dict["Адрес"] = address.text[:-8]
-
-                full_dict["Ссылка"] = url
 
                 ids = soup2.find("div", {"data-name": "AuthorAsideBrand"})
                 if ids.find("a", {"data-name": "Link"}) is not None:
@@ -129,7 +131,6 @@ def parser(url, page_counter=1, dict_list=[]):
                 full_dict["Телефон"] = soup2.find(
                     "div", {"data-name": "OfferContactsAside"}
                     ).find("a").text
-                square = soup2.find("h1").text.split(",")[1]
 
                 price = soup2.find("span", {"itemprop": "price"})
                 if price is not None:
@@ -139,12 +140,16 @@ def parser(url, page_counter=1, dict_list=[]):
                     price = "0"
                     full_dict["Цена"] = "Ценовой диапазон"
 
+                square = soup2.find("h1").text.split(",")[1]
                 full_dict["Площадь"] = square.strip()
 
                 if "от" in full_dict["Площадь"]:
                     full_dict["Цена за м2"] = "Диапазон площадей"
                 else:
-                    full_dict["Цена за м2"] = price//int(square.split(" ")[1])
+                    if "м" in square:  # не везде пропсиывают м2
+                        square = square.split("м")[0]
+                    square = square.replace(" ", "")
+                    full_dict["Цена за м2"] = price//int(square)
                 description = soup2.find("p", {"itemprop": "description"})
                 full_dict["Текст объявления"] = description.text
 
@@ -191,10 +196,14 @@ def parser(url, page_counter=1, dict_list=[]):
 
 def text_parser(delim, description):
     a = description.text.upper()
-    a = a.split(delim)
+    a = a.split(delim)[1]
+    if "составляет" in a:
+        a = a.split("составляет")[1]
+    if "равен" in a:
+        a = a.split("равен")[1]
     a_list = []
     letter_counter = 0  # для отсечения символов после суммы
-    for letter in a[1]:
+    for letter in a:
         if letter_counter > 3:  # если перед суммой " - "
             break
         elif letter.isdigit():
@@ -209,7 +218,7 @@ def text_parser(delim, description):
 
 
 def dict_write(dict_list):
-    with open("tables.csv", "w", newline='') as f:
+    with open("tables.csv", "w", newline='', encoding="utf-8") as f:
         fieldnames = ["Адрес", "Площадь", "Цена", "МАП", "Доходность по МАП",
                       "ГАП", "Доходность по ГАП", "Цена за м2",
                       "Текст объявления", "Телефон", "Ссылка", "ID"]
@@ -217,8 +226,10 @@ def dict_write(dict_list):
         w.writeheader()
         for i in dict_list:
             w.writerow(i)
+        f.encode("utf-8").decode("cp1251")
     finished["fg"] = "green"
     dict_list.clear()
+    print("=====КОНЕЦ=====")
     return
 
 
