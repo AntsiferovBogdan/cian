@@ -201,6 +201,8 @@ def text_parser(delim, description):
         a = a.split("составляет")[1]
     if "равен" in a:
         a = a.split("равен")[1]
+    if "не менее" in a:
+        a = a.split("не менее")[1]
     a_list = []
     letter_counter = 0  # для отсечения символов после суммы
     for letter in a:
