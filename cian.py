@@ -197,13 +197,16 @@ def parser(url, page_counter=1, dict_list=[]):
 def text_parser(delim, description):
     a = description.text.upper()
     a = a.split(delim)[1]
-    if "составляет" in a:
-        a = a.split("составляет")[1]
-    if "равен" in a:
-        a = a.split("равен")[1]
-    if "не менее" in a:
-        a = a.split("не менее")[1]
+    if "СОСТАВЛЯЕТ" in a:
+        a = a.split("СОСТАВЛЯЕТ")[1]  # каждое объявление уникально
+    if "РАВЕН" in a:                  # в силу богатства русского языка,
+        a = a.split("РАВЕН")[1]       # а потому написать регулярное выражение,
+    if "МЕНЕЕ" in a:                  # которое учло бы все варианты, просто
+        a = a.split("МЕНЕЕ")[1]       # невозможно :(
+    if "РУБ" in a:
+        a = a.split("РУБ")[0]
     a_list = []
+    print(a)
     letter_counter = 0  # для отсечения символов после суммы
     for letter in a:
         if letter_counter > 3:  # если перед суммой " - "
@@ -211,12 +214,18 @@ def text_parser(delim, description):
         elif letter.isdigit():
             letter_counter = 0
             a_list.append(letter)
+        elif letter == "," or letter == "%":
+            letter_counter = 0
+            a_list.clear()
         else:
             letter_counter += 1
     a_list = (",").join(a_list).replace(",", "")
     if len(a_list) < 5:  # если сумма записана как "2500 т.р."
-        a_list = int(a_list) * 1000
-    return int(a_list)
+        if a_list.isdigit():
+            a_list = int(a_list) * 1000
+        else:
+            a_list = 1
+    return a_list
 
 
 def dict_write(dict_list):
@@ -228,7 +237,6 @@ def dict_write(dict_list):
         w.writeheader()
         for i in dict_list:
             w.writerow(i)
-        f.encode("utf-8").decode("cp1251")
     finished["fg"] = "green"
     dict_list.clear()
     print("=====КОНЕЦ=====")
@@ -310,7 +318,7 @@ but1 = Button(root, text="Искать", command=search_url,
 finished = Label(root, text="Готово!", fg="white",
                  width=20, height=3)
 
-select.grid(row=0, column=0, sticky=W)
+select.grid(row=0, column=0, sticky=W)  # пробуждаем в себе ux-дизайнера
 
 r1.grid(row=1, column=0, sticky=W)
 r2.grid(row=1, column=1, sticky=W)
