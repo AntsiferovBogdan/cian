@@ -225,7 +225,7 @@ def text_parser(delim, description):
             a_list = int(a_list) * 1000
         else:
             a_list = 1
-    return a_list
+    return int(a_list)
 
 
 def dict_write(dict_list):
