@@ -219,7 +219,7 @@ def text_parser(delim, description):
             a_list.clear()
         else:
             letter_counter += 1
-    a_list = (",").join(a_list).replace(",", "")
+    a_list = ("").join(a_list)
     if len(a_list) < 5:  # если сумма записана как "2500 т.р."
         if a_list.isdigit():
             a_list = int(a_list) * 1000
@@ -296,13 +296,13 @@ def search_url():  # собираем конструктор url из tkinter
             return parser(url)
     else:
         if len(key_list_2) == 0:
-            key_words = (",").join(key_list_1).replace(",", "%7C")
+            key_words = ("%7C").join(key_list_1)
         else:
             key_words = []
             for key_2 in key_list_2:
                 for key_1 in key_list_1:
                     key_words.append(key_1 + "+" + key_2)
-            key_words = (",").join(key_words).replace(",", "%7C")
+            key_words = ("%7C").join(key_words)
     url = "https://www.cian.ru/cat.php?context="\
         + key_words + \
         "&currency=2&deal_type=sale&engine_version=2&m2=1&maxprice="\
