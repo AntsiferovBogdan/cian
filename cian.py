@@ -264,23 +264,23 @@ def search_url():  # собираем конструктор url из tkinter
 
     key_list_1 = []
     if property_type == "2":
-        if check_box_1.get() is True:
+        if check_box_1.get():
             key_list_1.append(c1["text"])
-        if check_box_2.get() is True:
+        if check_box_2.get():
             key_list_1.append(c2["text"])
-        if check_box_3.get() is True:
+        if check_box_3.get():
             key_list_1.append(c3["text"])
-        if check_box_4.get() is True:
+        if check_box_4.get():
             key_list_1.append(c4["text"])
-        if check_box_5.get() is True:
+        if check_box_5.get():
             key_list_1.append(c5["text"])
-        if check_box_6.get() is True:
+        if check_box_6.get():
             key_list_1.append(c6["text"])
 
     key_list_2 = []
-    if check_box_1_1.get() is True:
+    if check_box_1_1.get():
         key_list_2.append(c1_1["text"])
-    if check_box_1_2.get() is True:
+    if check_box_1_2.get():
         key_list_2.append(c1_2["text"])
 
     if len(key_list_1) == 0:
